@@ -12,8 +12,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
 const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin')
+const PreloadPlugin = require('preload-webpack-plugin')
 const loadMinified = require('./load-minified')
-
 const env = config.build.env
 
 const webpackConfig = merge(baseWebpackConfig, {
@@ -100,11 +100,23 @@ const webpackConfig = merge(baseWebpackConfig, {
     ]),
     // service worker caching
     new SWPrecacheWebpackPlugin({
-      cacheId: 'prpl-vue',
+      cacheId: '  -vue',
       filename: 'service-worker.js',
       staticFileGlobs: ['dist/**/*.{js,html,css}'],
       minify: true,
-      stripPrefix: 'dist/'
+      stripPrefix: 'dist/',
+      staticFileGlobsIgnorePatterns: [/\.map$/, /manifest\.json$/]
+    }),
+    new PreloadPlugin({
+      rel: 'preload',
+      as(entry) {
+        if (/\.png$/.test(entry)) return 'image';
+        return 'script';
+      },
+      include: 'allChunks',
+      include: 'allAssets',
+      fileBlacklist: [/\.map/]
+
     })
   ]
 })
